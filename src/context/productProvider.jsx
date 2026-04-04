@@ -21,7 +21,7 @@ export default function ProductProvider({ children }) {
     }, []);
 
     return (
-        <ProductContext.Provider value={{ data, setData }}>
+        <ProductContext.Provider value={{ data, setData ,loadData}}>
             {children}
         </ProductContext.Provider>
     );
