@@ -1,165 +1,313 @@
-import { Box, Button, ButtonGroup, Card, CardContent, CardMedia, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Drawer, Grid, Icon, Paper, Stack, TextField, Tooltip, Typography } from "@mui/material";
-import { useCallback, useContext, useEffect, useState } from "react";
+import {
+  Box, Button, Card, CardContent, CardMedia, Dialog,
+  DialogActions, DialogContent, DialogTitle, Grid,
+  Paper, Stack, TextField, Tooltip, Typography
+} from "@mui/material";
+
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDebounce } from "use-debounce";
+
 import { ProductContext } from "../context/productContext";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import TuneSharpIcon from '@mui/icons-material/TuneSharp';
 import { AuthContext } from "../context/auth/authContext";
 
 export default function CardComponent() {
 
-    const { data, setData } = useContext(ProductContext);
-    const { user } = useContext(AuthContext);
-    const [cart, setCart] = useState([]);
-    const [cartSize, setCartsize] = useState();
-    console.log(cartSize);
+  const { data } = useContext(ProductContext);
+  const { user } = useContext(AuthContext);
 
-    const navigate = useNavigate();
+  const [cart, setCart] = useState([]);
+  const [cartSize, setCartsize] = useState();
 
-    console.log("user data in cont4ext", user);
-    const next = (id) => {
-        const itemToAdd = data.find((item) => item.id === id);
-        if (itemToAdd) {
-            const updatedCart = [...cart, { ...itemToAdd, qty: 1 }];
-            localStorage.setItem('buy', JSON.stringify(updatedCart));
-            navigate(`/checkOut`);
+  const [filteredData, setFilteredData] = useState([]);
+
+  const [filter, setFilter] = useState({
+    value: "",
+    min: "",
+    max: ""
+  });
+
+  const [debounceValue] = useDebounce(filter, 500);
+
+  const [open, setOpen] = useState(false);
+
+  const navigate = useNavigate();
+
+  const next = (id) => {
+    const itemToAdd = data.find((item) => item.id === id);
+    if (itemToAdd) {
+      const updatedCart = [{ ...itemToAdd, qty: 1 }];
+      localStorage.setItem('buy', JSON.stringify(updatedCart));
+      navigate(`/checkOut`);
+    }
+  };
+
+  const addToCart = (id) => {
+    const itemToAdd = data.find((item) => item.id === id);
+
+    if (itemToAdd) {
+      const prevData = JSON.parse(localStorage.getItem('cart')) || [];
+      const existingItem = prevData.find((item) => item.id === id);
+
+      let updatedCart;
+
+      if (existingItem) {
+        updatedCart = prevData.map((item) =>
+          item.id === id
+            ? { ...item, qty: (item.qty || 1) + 1 }
+            : item
+        );
+      } else {
+        updatedCart = [...prevData, { ...itemToAdd, qty: 1 }];
+      }
+
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      setCart(updatedCart);
+      setCartsize(updatedCart);
+    }
+  };
+
+  const openCart = () => {
+    navigate('/checkOut');
+  };
+
+  useEffect(() => {
+    const cartData = JSON.parse(localStorage.getItem('cart'));
+    setCartsize(cartData);
+  }, []);
+
+  useEffect(() => {
+    setFilteredData(data);
+  }, [data]);
+
+  const handleApply = () => {
+
+    let newItem = [...data];
+
+    if (debounceValue.value && debounceValue.value !== "") {
+      const search = debounceValue.value.trim().toLowerCase();
+      const searchNumber = Number(search);
+
+      newItem = newItem.filter((d) => {
+        const finalPrice = Math.round(
+          d.price * (1 - ((d.discount || 0) / 100))
+        );
+
+        return (
+          d.name?.toLowerCase().includes(search) ||
+          d.description?.toLowerCase().includes(search) ||
+          (!isNaN(searchNumber) && finalPrice === searchNumber)
+        );
+      });
+    }
+
+    if (debounceValue.max !== "" || debounceValue.min !== "") {
+
+      newItem = newItem.filter((d) => {
+        const finalPrice = Math.round(
+          d.price * (1 - ((d.discount || 0) / 100))
+        );
+
+        if (debounceValue.max !== "" && debounceValue.min !== "") {
+          return finalPrice >= Number(debounceValue.min) &&
+                 finalPrice <= Number(debounceValue.max);
         }
 
-    }
-
-
-    const addToCart =(id) => {
-        const itemToAdd = data.find((item) => item.id === id);
-        if (itemToAdd) {
-            const updatedCart = [...cart, { ...itemToAdd, qty: 1 }];
-            setCart(updatedCart);
-            localStorage.setItem('cart', JSON.stringify(updatedCart));
-            const cartData = JSON.parse(localStorage.getItem('cart'));
-            setCartsize(cartData);
+        else if (debounceValue.min !== "") {
+          return finalPrice >= Number(debounceValue.min);
         }
+
+        else if (debounceValue.max !== "") {
+          return finalPrice <= Number(debounceValue.max);
+        }
+
+        return true;
+      });
     }
 
+    setFilteredData(newItem);
+  };
 
-    const openCart = () => {
-        navigate('/checkOut');
-    }
-    useEffect(() => {
-        
-        const cartData = JSON.parse(localStorage.getItem('cart'));
-        setCartsize(cartData);
-    }, []);
+  const removeFilter = () => {
+    setFilteredData(data);
+    setFilter({ value: "", min: "", max: "" });
+    setOpen(false);
+  };
 
+  useEffect(() => {
+    handleApply();
+  }, [debounceValue, data]);
 
+  return (
+    <Box>
+      <Stack spacing={5}>
+        <Paper>
+          <Box paddingBottom={10} paddingTop={10}>
 
+            <Box sx={{ display: "flex", justifyContent: "end", mb: 2 }}>
 
-    return (
-        <Box
-            component='div'
+              <TextField
+                type="text"
+                placeholder="Search"
+                size="small"
+                value={filter.value}
+                onChange={(e) =>
+                  setFilter({ ...filter, value: e.target.value })
+                }
+                sx={{ mr: 1 }}
+              />
 
-        >
-            <Stack
-                direction='column'
-                spacing={5}
-            >
+              <Tooltip title="Filter">
+                <Button onClick={() => setOpen(true)}>
+                  <TuneSharpIcon />
+                </Button>
+              </Tooltip>
 
-                <Paper>
-                    <Box paddingBottom={10} paddingTop={10}>
-                        <Button variant="text" onClick={openCart}>
-                            <Box
-                                component="span"
-                                sx={{
-                                    position: "fixed",
-                                    right: 20,
-                                    top: "10%",
-                                    transform: "translateY(-50%)",
-                                    zIndex: 1100,
-                                    backgroundColor: "primary.main",
-                                    color: "white",
-                                    p: 1,
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    cursor: "pointer",
-                                    boxShadow: 3
-                                }}
-                            >
+              <Dialog open={open} onClose={() => setOpen(false)}>
+                <DialogTitle>Filter by Price</DialogTitle>
 
-                                <ShoppingCartIcon />
+                <DialogContent>
+                  <Stack spacing={2} sx={{ pt: 1 }}>
+                    <TextField
+                      label="Min Price"
+                      type="number"
+                      value={filter.min}
+                      onChange={(e) =>
+                        setFilter({ ...filter, min: e.target.value })
+                      }
+                    />
+                    <TextField
+                      label="Max Price"
+                      type="number"
+                      value={filter.max}
+                      onChange={(e) =>
+                        setFilter({ ...filter, max: e.target.value })
+                      }
+                    />
+                  </Stack>
+                </DialogContent>
 
-                            </Box>
-                        </Button>
+                <DialogActions>
+                  <Button onClick={removeFilter}>Remove</Button>
+                  <Button onClick={()=>{setOpen(false)}} variant="contained">
+                    Close
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </Box>
 
-                        <Grid container sx={{ m: "auto", justifyContent: "center" }} spacing={3}>{
-                            data.map((product) =>
-                                <Grid item xs={12} sm={3} md={4} lg={6} key={product.id}>
-                                    <Card
-                                        sx={{
-                                            maxWidth: 300,
-                                            minWidth: 300,
-                                            maxHeight: 400,
-                                            minHeight: 400,
-                                            borderRadius: 3,
-                                            boxShadow: 4,
-                                            mx: "auto",
-                                            position: "relative",
-                                            display: "flex",
-                                            flexDirection: "column"
+          
+            <Button variant="text" onClick={openCart}>
+              <Box
+                component="span"
+                sx={{
+                  position: "fixed",
+                  right: 20,
+                  top: "5%",
+                  zIndex: 1100,
+                  backgroundColor: "primary.main",
+                  color: "white",
+                  p: 1,
+                  borderRadius: "50%",
+                  display: "flex",
+                  cursor: "pointer",
+                  boxShadow: 3
+                }}
+              >
+                <ShoppingCartIcon />
+              </Box>
+            </Button>
 
-                                        }}
-                                    >
+            <Grid container sx={{ m: "auto", justifyContent: "center" }} spacing={3}>
 
-                                        <CardMedia
-                                            component="img"
-                                            height="200"
-                                            width="150"
-                                            image={product.imageUrl}
-                                            alt={product.name}
-                                        />
+              
+              {filteredData.length === 0 ? (
 
-                                        <CardContent
-                                            sx={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                flexGrow: 1,
-                                            }}>
-                                            <Typography variant="h6" fontWeight="bold" noWrap>
-                                                {product.name}
-                                            </Typography>
+                <Box sx={{ width: "100%", textAlign: "center", mt: 5 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    No products found
+                  </Typography>
+                </Box>
 
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                {product.description}
-                                            </Typography>
+              ) : (
 
-                                            {/* Price section */}
-                                            <Box display="flex" alignItems="center" gap={1} sx={{ mb: "auto", mt: "auto" }}>
-                                                <Typography variant="h7" color="black">
-                                                    ₹{product.price}
-                                                </Typography>
+               
+                filteredData.map((product) => (
+                  <Grid item xs={12} sm={3} md={4} lg={6} key={product.id}>
 
+                    <Card sx={{
+                      maxWidth: 300,
+                      minWidth: 300,
+                      maxHeight: 400,
+                      minHeight: 400,
+                      borderRadius: 3,
+                      boxShadow: 4,
+                      mx: "auto",
+                      display: "flex",
+                      flexDirection: "column"
+                    }}>
 
+                      <CardMedia
+                        component="img"
+                        height="200"
+                        image={product.imageUrl}
+                      />
 
-                                            </Box>
+                      <CardContent sx={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
 
-                                            <Box sx={{ mt: "auto" }}>
-                                                <Grid container spacing={0.5}>
-                                                    <Grid size={{ xs: 6 }}>
-                                                        {(cartSize?.some((item) => item.id === product.id)) ? <Button fullWidth variant="contained" onClick={() => {openCart() }}>Go To Cart</Button> :
-                                                            <Button fullWidth variant="contained" onClick={() => addToCart(product.id)}>Add To Cart</Button>}
-                                                    </Grid>
-                                                    <Grid size={{ xs: 6 }}>
-                                                        <Button fullWidth variant="contained" onClick={() => next(product.id)}>Buy</Button>
+                        <Typography variant="h6" fontWeight="bold" noWrap>
+                          {product.name}
+                        </Typography>
 
-                                                    </Grid>
-                                                </Grid>
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                          {product.description}
+                        </Typography>
 
-                                            </Box>
-                                        </CardContent>
-                                    </Card>
-                                </Grid>
-                            )}
+                        <Box display="flex" justifyContent="space-between">
+                          <Typography>₹{product.price}</Typography>
+                          <Typography>Stock: {product.stock}</Typography>
+                        </Box>
 
-                        </Grid>
-                    </Box>
-                </Paper>
-            </Stack>
-        </Box>
-    )
+                        <Box sx={{ mt: "auto" }}>
+                          {product.stock === 0 ? (
+                            <Button fullWidth variant="contained" color="error" disabled>
+                              Out of Stock
+                            </Button>
+                          ) : (
+                            <Grid container spacing={1}>
+                              <Grid item xs={6}>
+                                {(cartSize?.some((item) => item.id === product.id)) ?
+                                  <Button fullWidth variant="contained" color="warning" onClick={openCart}>
+                                    Go To Cart
+                                  </Button>
+                                  :
+                                  <Button fullWidth variant="contained" onClick={() => addToCart(product.id)}>
+                                    Add To Cart
+                                  </Button>
+                                }
+                              </Grid>
+
+                              <Grid item xs={6}>
+                                <Button fullWidth variant="contained" onClick={() => next(product.id)}>
+                                  Buy
+                                </Button>
+                              </Grid>
+                            </Grid>
+                          )}
+                        </Box>
+
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))
+              )}
+            </Grid>
+
+          </Box>
+        </Paper>
+      </Stack>
+    </Box>
+  );
 }

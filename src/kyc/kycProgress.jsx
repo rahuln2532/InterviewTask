@@ -19,7 +19,7 @@ export default function KYCunderReview() {
                 </Typography>
                 <Box>
 
-                    <Button variant="contained" sx={{ mr: 2 }} onClick={() => navigate("/productCard")}>Explore More</Button>
+                    <Button variant="contained" sx={{ mr: 2 }} onClick={() => navigate("/productCard",{replace:true})}>Explore More</Button>
 
                    
 

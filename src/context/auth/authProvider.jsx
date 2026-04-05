@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { AuthContext } from "./authContext";
-import axios from "axios";
 import bcrypt from "bcryptjs-react";
+import { getUser } from "../../api/userServices";
 
 
 
 
 export default function AuthProvider({ children }) {
+    const [authenticated, setAutheticated] = useState(false);
     const [user, setUser] = useState();
 
 
@@ -14,7 +15,7 @@ export default function AuthProvider({ children }) {
 
 
         const userEmail = JSON.parse(localStorage.getItem('user'));
-        const res = await axios.get("http://localhost:5000/user");
+        const res = await getUser("/user");
         const resData = res.data;
         const userData = resData.find((item) => item.email === userEmail);
        
@@ -28,6 +29,7 @@ export default function AuthProvider({ children }) {
             address: userData.address,
             isActive: userData.isActive
         };
+        setAutheticated(true);
 
         localStorage.setItem("user", JSON.stringify(userProfile.email));
 
@@ -51,7 +53,7 @@ export default function AuthProvider({ children }) {
 
     const login = async (data) => {
         try {
-            const res = await axios.get("http://localhost:5000/user");
+            const res = await getUser("/user");
 
 
             const resData = res.data;
@@ -79,7 +81,7 @@ export default function AuthProvider({ children }) {
                 address: userData.address,
                 isActive: userData.isActive
             };
-
+         setAutheticated(true);
             localStorage.setItem("user", JSON.stringify(userProfile.email));
 
             setUser(userProfile);
@@ -92,7 +94,7 @@ export default function AuthProvider({ children }) {
 
 
     return (
-        <AuthContext.Provider value={{  user, setUser, login }}>
+        <AuthContext.Provider value={{  user, setUser, login , authenticated}}>
             {children}
         </AuthContext.Provider>
     )

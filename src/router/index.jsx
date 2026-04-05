@@ -5,6 +5,8 @@ import { KycRegistration } from "../kyc/kycRegistration";
 import OrderDonePage from "../product/orderDone";
 import { KycLogin } from "../kyc/login";
 import KYCunderReview from "../kyc/kycProgress";
+import OrderHistoryPage from "../product/orderHistory";
+import AuthGuard from "./authGuard";
 
 export function Router(){
   
@@ -19,7 +21,8 @@ export function Router(){
 
         <Route path="/kyc" element={< KycRegistration/>}/>
 
-        <Route path="/orderDone" element={< OrderDonePage/>}/>
+        <Route path="/orderDone" element={<AuthGuard>< OrderDonePage/></AuthGuard>}/>
+        <Route path="/orderHistory" element={<AuthGuard>< OrderHistoryPage/></AuthGuard>}/>
         
       </Routes>
       </BrowserRouter>

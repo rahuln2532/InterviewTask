@@ -7,19 +7,26 @@ import RHFtextfield from "../component/rhfTextField";
 import RHFUploadInput from "../component/rhfUploadInput";
 import { AuthContext } from "../context/auth/authContext";
 import { useContext } from "react";
-import axios from "axios";
+import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { createUser } from "../api/userServices";
+import { ProductContext } from "../context/productContext";
 
 export function KycRegistration() {
 
-    const { user, setUser } = useContext(AuthContext);
+    const { user, setUser, } = useContext(AuthContext);
+    const { imageprev } = useContext(ProductContext);
     const navigate = useNavigate();
+
+
+    const location = useLocation();
+    const from = location.state?.from;
 
     const userSchema = yup.object().shape({
         firstname: yup.string().required("First name is required"),
         lastname: yup.string().required("Last name is required"),
         email: yup.string().email().required("email is required"),
-        phone: yup.string().required("phone no is required"), 
+        phone: yup.string().required("phone no is required"),
         address: yup.string().required("Address is required"),
         image: yup.mixed().required("Document is required"),
         password: yup.string().required("password is required"),
@@ -29,9 +36,9 @@ export function KycRegistration() {
         name: '',
         email: '',
         phone: '',
-        password:'',
-        image:'',
-        address:''
+        password: '',
+        image: '',
+        address: ''
     }
 
     const method = useForm({
@@ -39,21 +46,28 @@ export function KycRegistration() {
             defaultValues)
     });
 
-    const { control, handleSubmit } = method;
+    const { control, handleSubmit, watch } = method;
 
-
+    const values = watch();
     const onSubmit = handleSubmit(async (data) => {
         try {
 
             // const salt=await bcrypt.genSalt(10);
             // const hash= await bcrypt.hash(data.password,salt);
             // console.log("hash",hash);
-            const updatedData= {...data,isActive:false}
-            await axios.post("http://localhost:5000/user", updatedData);
+
+            const updatedData = { ...data, isActive: false }
+            await createUser("/user", updatedData);
             localStorage.setItem("user", JSON.stringify(updatedData.email));
             setUser(updatedData);
-            console.log("user", user)
-            navigate(-1);
+            // console.log("user", user)
+            if (from === "checkout") {
+                navigate("/checkout", { replace: true });
+            } else if (from === "login") {
+                navigate("/", { replace: true });
+            } else {
+                navigate("/productCard", { replace: true });
+            }
 
         } catch (error) {
             console.error(error);
@@ -83,7 +97,7 @@ export function KycRegistration() {
                                 <Grid size={{ xs: 12, md: 6 }}>
                                     <RHFtextfield name="phone" label="Phone" control={control} fullWidth />
                                 </Grid>
-                                 <Grid size={{ xs: 12, md: 6 }}>
+                                <Grid size={{ xs: 12, md: 6 }}>
                                     <RHFtextfield name="password" label="Password" control={control} fullWidth />
                                 </Grid>
                                 <Grid size={{ xs: 12, md: 12 }}>
@@ -98,8 +112,11 @@ export function KycRegistration() {
                                         border: "1px dashed grey",
 
                                     }}>
-                                        <Stack spacing={2}>
-                                            <Typography >Upload Address Proof (Aadhar Card, Pan Card, Voter Id)</Typography>
+                                        <Stack spacing={2}textAlign="center" alignItems="center">
+                                            {values.image &&
+                                                <Box component="img" src={values?.image} height={150} width={120} />
+                                            }
+                                            <Typography >Upload Address Proof (Aadhar Card, Pan Card, Voter Id) Allowed Size less than 10 kb</Typography>
 
                                             <Button variant="contained" component="label">
                                                 Upload File

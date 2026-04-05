@@ -21,9 +21,9 @@ export default function OrderDonePage() {
 
         <Box>
 
-          <Button variant="contained" sx={{ mr: 2 }} onClick={() => navigate("/productCard")}>Continue Shopping</Button>
+          <Button variant="contained" sx={{ mr: 2 }} onClick={() => navigate("/productCard",{replace:true})}>Continue Shopping</Button>
 
-          {/* <Button variant="outlined" onClick={() => navigate("/orders")}> View Orders</Button> */}
+          <Button variant="outlined" onClick={() => navigate("/orderHistory",{replace:true})}> View Orders</Button>
 
         </Box>
 

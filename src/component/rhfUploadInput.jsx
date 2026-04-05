@@ -3,12 +3,12 @@
 import { Controller } from "react-hook-form";
 import convertImage from "./imageConverter";
 import { useContext } from "react";
-// import { ProductContext } from "../context/productContext";
 import { Typography } from "@mui/material";
+import { ProductContext } from "../context/productContext";
 
 export default function RHFUploadInput({ control, name, ...other }) {
 
-    //   const {setImageprev}=useContext(ProductContext);
+      const {setImageprev}=useContext(ProductContext);
     return (
         <Controller
             name={name}
@@ -26,7 +26,7 @@ export default function RHFUploadInput({ control, name, ...other }) {
 
                             const imageBase64 = await convertImage(file);
                             field.onChange(imageBase64);
-                            // setImageprev(imageBase64);
+                            setImageprev(imageBase64);
                         }}
                         {...other}
                     />
