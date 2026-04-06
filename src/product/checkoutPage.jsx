@@ -6,6 +6,7 @@ import { AuthContext } from "../context/auth/authContext";
 import { updateProducts } from "../api/productService";
 import { createOrder } from "../api/orderService";
 import DeleteIcon from '@mui/icons-material/Delete';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
 export default function CheckoutPage() {
 
@@ -137,6 +138,11 @@ export default function CheckoutPage() {
     }
   };
 
+  const backNavigation=()=>{
+     localStorage.removeItem("buy");
+     navigate("/productCard",{replace:true})
+  }
+
   useEffect(() => {
 
     CardData();
@@ -198,9 +204,11 @@ export default function CheckoutPage() {
 
                 </Table>
               </TableContainer>
-
+    
             </Card>
+             <Button variant="outlined" sx={{mt:2}} onClick={backNavigation}><KeyboardBackspaceIcon/> Back To Poduct</Button>
           </Grid>
+         
 
           <Grid size={{ xs: 12, md: 4 }}>
             <Card sx={{ p: 3, borderRadius: 3 }}>

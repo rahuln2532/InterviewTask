@@ -12,10 +12,13 @@ import { ProductContext } from "../context/productContext";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import TuneSharpIcon from '@mui/icons-material/TuneSharp';
 import { AuthContext } from "../context/auth/authContext";
+import { getUser } from "../api/userServices";
+import { getProducts } from "../api/productService";
 
 export default function CardComponent() {
 
-  const { data } = useContext(ProductContext);
+  // const { data } = useContext(ProductContext);
+  const[data,setCurrentData]=useState([]);
   const { user } = useContext(AuthContext);
 
   const [cart, setCart] = useState([]);
@@ -28,6 +31,12 @@ export default function CardComponent() {
     min: "",
     max: ""
   });
+
+  const load=async()=>{
+     const res =await getProducts('/products')
+     setCurrentData(res.data);
+
+  }
 
   const [debounceValue] = useDebounce(filter, 500);
 
@@ -139,6 +148,11 @@ export default function CardComponent() {
   useEffect(() => {
     handleApply();
   }, [debounceValue, data]);
+
+
+  useEffect(()=>{
+    load();
+  },[]);
 
   return (
     <Box>
