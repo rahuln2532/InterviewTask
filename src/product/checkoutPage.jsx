@@ -141,7 +141,7 @@ export default function CheckoutPage() {
 
     CardData();
 
-  }, [data, id,orderData]);
+  }, [data, id]);
 
   return (
 

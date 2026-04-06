@@ -11,11 +11,6 @@ export default function RHFtextfield({
   type, 
   ...other
 }) {
-  const [showPassword, setShowPassword] = useState(false);
-
-//   const handleClickShowPassword = () => {
-//     setShowPassword((prev) => !prev);
-//   };
 
   return (
     <Controller
@@ -30,30 +25,7 @@ export default function RHFtextfield({
           variant="outlined"
           error={error}
           helperText={error?.message}
-          type={
-            type === "password"
-              ? showPassword
-                ? "text"
-                : "password"
-              : type
-          }
-        //   InputProps={
-        //     type === "password"
-        //       ? {
-        //           endAdornment: (
-        //             <InputAdornment position="end">
-        //               <IconButton
-        //                 onClick={handleClickShowPassword}
-        //                 edge="end"
-        //                 aria-label="toggle password visibility"
-        //               >
-        //                 {showPassword ? <Visibility />:<VisibilityOff />}
-        //               </IconButton>
-        //             </InputAdornment>
-        //           ),
-        //         }
-        //       : undefined
-        //   }
+          type={type}
           onChange={(e) => field.onChange(e.target.value)}
           {...other}
         />

@@ -7,7 +7,7 @@ import { getUser } from "../../api/userServices";
 
 
 export default function AuthProvider({ children }) {
-    const [authenticated, setAutheticated] = useState(false);
+    const [authenticated, setAuthenticated] = useState(false);
     const [user, setUser] = useState();
 
 
@@ -18,7 +18,7 @@ export default function AuthProvider({ children }) {
         const res = await getUser("/user");
         const resData = res.data;
         const userData = resData.find((item) => item.email === userEmail);
-       
+
         const userProfile = {
             id: userData.id,
             firstname: userData.firstname,
@@ -29,26 +29,37 @@ export default function AuthProvider({ children }) {
             address: userData.address,
             isActive: userData.isActive
         };
-        setAutheticated(true);
+
 
         localStorage.setItem("user", JSON.stringify(userProfile.email));
 
-        
+
         return userProfile;
 
     }
 
     const initialize = async () => {
-        
-            const userProfile = await me();
-           
-            setUser(userProfile);
-   
+try{
+        const userProfile = await me();
+        if (userProfile) {
+            setAuthenticated(true);
+            console.log("userProfile",userProfile);
+        }
+        else {
+            setAuthenticated(false);
+        }
+    }
+    catch(error){
+        console.log(error)
+    }
     }
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         initialize();
     }, []);
+    useEffect(() => {
+    console.log("AUTH UPDATED:", authenticated);
+}, [authenticated]);
 
 
     const login = async (data) => {
@@ -60,14 +71,14 @@ export default function AuthProvider({ children }) {
             console.log(resData);
 
             const userData = resData.find((item) => item.email === data.email);
-           
+
             if (!userData) {
                 throw ('Email Incorrect');
             };
-           
-           // const passwordMatched = await bcrypt.compare("rahul", userData.password);
 
-            if (data.Password!==userData.password) {
+            // const passwordMatched = await bcrypt.compare("rahul", userData.password);
+
+            if (data.Password !== userData.password) {
                 throw ('Unauthoried Access: Password Incorrect');
             };
             //    enqueueSnackbar('Login successfully!', { variant: 'success' });
@@ -81,7 +92,7 @@ export default function AuthProvider({ children }) {
                 address: userData.address,
                 isActive: userData.isActive
             };
-         setAutheticated(true);
+            setAuthenticated(true);
             localStorage.setItem("user", JSON.stringify(userProfile.email));
 
             setUser(userProfile);
@@ -94,7 +105,7 @@ export default function AuthProvider({ children }) {
 
 
     return (
-        <AuthContext.Provider value={{  user, setUser, login , authenticated}}>
+        <AuthContext.Provider value={{ user, setUser, login, authenticated }}>
             {children}
         </AuthContext.Provider>
     )

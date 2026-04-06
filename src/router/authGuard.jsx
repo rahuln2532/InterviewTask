@@ -8,7 +8,7 @@ export default function AuthGuard({ children}) {
 
     useEffect(() => {
         const userEmail = sessionStorage.getItem('user');
-        if (!authenticated && !userEmail) {
+        if (!authenticated) {
             navigate('/', { replace: true });
         }
     }, [authenticated, navigate]);
