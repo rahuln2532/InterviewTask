@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { AuthContext } from "./authContext";
-import bcrypt from "bcryptjs-react";
 import { getUser } from "../../api/userServices";
 
 
@@ -8,16 +7,22 @@ import { getUser } from "../../api/userServices";
 
 export default function AuthProvider({ children }) {
     const [authenticated, setAuthenticated] = useState(false);
-    const [user, setUser] = useState();
+    const [user, setUser] = useState(null);
+    const [authLoading, setAuthLoading] = useState(true);
 
 
     const me = async () => {
-
-
         const userEmail = JSON.parse(localStorage.getItem('user'));
+        if (!userEmail) {
+            return null;
+        }
+
         const res = await getUser("/user");
         const resData = res.data;
         const userData = resData.find((item) => item.email === userEmail);
+        if (!userData) {
+            return null;
+        }
 
         const userProfile = {
             id: userData.id,
@@ -39,27 +44,27 @@ export default function AuthProvider({ children }) {
     }
 
     const initialize = async () => {
-try{
-        const userProfile = await me();
-        if (userProfile) {
-            setAuthenticated(true);
-            console.log("userProfile",userProfile);
-        }
-        else {
+        try {
+            const userProfile = await me();
+            if (userProfile) {
+                setUser(userProfile);
+                setAuthenticated(true);
+            } else {
+                setUser(null);
+                setAuthenticated(false);
+            }
+        } catch (error) {
+            console.log(error)
+            setUser(null);
             setAuthenticated(false);
+        } finally {
+            setAuthLoading(false);
         }
     }
-    catch(error){
-        console.log(error)
-    }
-    }
+
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         initialize();
     }, []);
-    useEffect(() => {
-    console.log("AUTH UPDATED:", authenticated);
-}, [authenticated]);
 
 
     const login = async (data) => {
@@ -103,9 +108,16 @@ try{
         }
     }
 
+    const logout=()=>{
+
+        localStorage.removeItem('user');
+        setUser(null);
+        setAuthenticated(false);
+    }
+
 
     return (
-        <AuthContext.Provider value={{ user, setUser, login, authenticated }}>
+        <AuthContext.Provider value={{ user, setUser, login, authenticated, authLoading,logout }}>
             {children}
         </AuthContext.Provider>
     )

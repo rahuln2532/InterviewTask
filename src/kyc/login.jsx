@@ -1,5 +1,6 @@
-import { Box, Button, Card, Container,Typography } from "@mui/material";
+import { Box, Button, Card, Container, Link, Snackbar, Typography } from "@mui/material";
 import { useForm } from "react-hook-form";
+import {enqueueSnackbar} from "notistack";
 import * as yup from 'yup';
 import { yupResolver } from "@hookform/resolvers/yup";
 import RHFtextfield from "../component/rhfTextField";
@@ -13,7 +14,6 @@ export function KycLogin() {
 
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
-
 
     const location = useLocation();
     const from = location.state?.from;
@@ -34,7 +34,7 @@ export function KycLogin() {
             defaultValues)
     });
 
-    const { control, handleSubmit } = method;
+    const { control, handleSubmit,formState:{isSubmitting} } = method;
 
     const guest = () => {
         navigate("/productCard");
@@ -44,17 +44,22 @@ export function KycLogin() {
     const onSubmit = handleSubmit(async (data) => {
         try {
             const user = await login(data);
+            enqueueSnackbar('login Successfully', {
+                variant: 'success'
+            });
             console.log(user);
             if (user.email) {
                 if (from === "checkout") {
-                    navigate("/checkout",{ replace: true });
+                    navigate("/checkout", { replace: true });
                 } else {
-                    navigate("/productCard",{ replace: true });
+                    navigate("/productCard", { replace: true });
                 }
             }
 
         } catch (error) {
-            console.error(error);
+             enqueueSnackbar(error, {
+                variant: 'error'
+            });
         }
     })
     return (
@@ -68,10 +73,12 @@ export function KycLogin() {
                             <RHFtextfield name="Password" label="Password" control={control} fullWidth />
                         </Box>
                         <Box sx={{ p: 5, pt: 0 }}>
-                            <Button fullWidth variant="contained" type="submit" >Submit</Button>
-                            <Box sx={{ display: "flex", justifyContent: "center", alignContent: "center", p: 2 }}>
-                                <Button fullWidth variant="text" onClick={guest} >Guest Login</Button>
-                                <Button fullWidth variant="text" onClick={() => { navigate("/kyc", { state: { from: "login" } }); }} >Registration</Button>
+                            <Button fullWidth variant="contained" type="submit" loading={isSubmitting} >Submit</Button>
+                           
+                                <Button fullWidth variant="text" onClick={guest} sx={{pt:2}}>Guest Login</Button>
+                                 <Box sx={{ display: "flex", justifyContent: "center", alignContent: "center", p: 2,pt:0 }}>
+                                    <Typography variant="caption" alignItems="center">If you Don't have Account?</Typography>
+                                <Link  sx={{textDecoration:false}} onClick={() => { navigate("/kyc", { state: { from: "login" } }); }} >sign up</Link>
                             </Box>
                         </Box>
 

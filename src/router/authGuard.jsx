@@ -3,17 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/auth/authContext";
 
 export default function AuthGuard({ children}) {
-    const { authenticated } = useContext(AuthContext);
+    const { authenticated, authLoading } = useContext(AuthContext);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const userEmail = sessionStorage.getItem('user');
+        if (authLoading) return;
+
         if (!authenticated) {
             navigate('/', { replace: true });
         }
-    }, [authenticated, navigate]);
+    }, [authenticated, authLoading, navigate]);
 
 
+    if (authLoading) return null;
     if(!authenticated) return null;
 
     return children;

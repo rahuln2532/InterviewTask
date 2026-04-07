@@ -49,7 +49,7 @@ export default function CardComponent() {
     if (itemToAdd) {
       const updatedCart = [{ ...itemToAdd, qty: 1 }];
       localStorage.setItem('buy', JSON.stringify(updatedCart));
-      navigate(`/checkOut`);
+      navigate(`/checkout`,{replace:true});
     }
   };
 
@@ -79,7 +79,7 @@ export default function CardComponent() {
   };
 
   const openCart = () => {
-    navigate('/checkOut');
+    navigate('/checkout',{replace:true});
   };
 
   useEffect(() => {
@@ -158,7 +158,7 @@ export default function CardComponent() {
     <Box>
       <Stack spacing={5}>
         <Paper>
-          <Box paddingBottom={10} paddingTop={10}>
+          <Box pb={10} pt={2} >
 
             <Box sx={{ display: "flex", justifyContent: "end", mb: 2 }}>
 
@@ -219,7 +219,7 @@ export default function CardComponent() {
                 sx={{
                   position: "fixed",
                   right: 20,
-                  top: "5%",
+                  top: "20%",
                   zIndex: 1100,
                   backgroundColor: "primary.main",
                   color: "white",

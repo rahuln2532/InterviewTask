@@ -64,9 +64,9 @@ export default function CheckoutPage() {
 
   const actualPrice = orderData?.reduce((total, item) => total + item.price * item.qty, 0);
 
-  const tax = 100;
-  const delivery = 100;
-  const total = actualPrice + tax + delivery;
+  const tax = actualPrice * 0.02;
+  const delivery = actualPrice? 50:0;
+  const total = actualPrice? actualPrice + tax + delivery:0;
 
   const handelCheckout = () => {
 
@@ -138,10 +138,11 @@ export default function CheckoutPage() {
     }
   };
 
-  const backNavigation=()=>{
-     localStorage.removeItem("buy");
-     navigate("/productCard",{replace:true})
+  const backNavigation = () => {
+    localStorage.removeItem("buy");
+    navigate('/productCard', { replace: true })
   }
+  console.log("orderData", orderData.length)
 
   useEffect(() => {
 
@@ -153,17 +154,17 @@ export default function CheckoutPage() {
 
     <Container sx={{ mt: 4 }}>
       <Box mb={5} display="flex" justifyContent="flex-start">
-        <Button variant="text"   onClick={backNavigation}><KeyboardBackspaceIcon/></Button>
+        <Button variant="text" onClick={backNavigation}><KeyboardBackspaceIcon /></Button>
         <Typography variant="h5" fontWeight={700}>checkout</Typography>
       </Box>
 
-      {orderData.length === 0 ? (
-        <Card sx={{p:5,borderRadius:3,display:"flex",justifyContent:"center",alignItems:"center",minHeight: 200}}>
+      {!orderData ? (
+        <Card sx={{ p: 5, borderRadius: 3, display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
           <Typography variant="h6" color="text.secondary" textAlign="center">
             Cart is Empty
           </Typography>
         </Card>
-        
+
       ) : (
 
 
@@ -185,32 +186,43 @@ export default function CheckoutPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {orderData?.map((item, index) => (
-                      <TableRow key={index} hover>
-                        <TableCell><Typography fontWeight={500}>{item.name}</Typography></TableCell>
-                        <TableCell align="right">₹{item.price}</TableCell>
-                        <TableCell align="right">
-                          <Box display="flex " justifyContent="center" alignItems="center" gap={1}>
-                            <Button variant="text" onClick={() => decreaseQty(index)}> -</Button>
-                            <Typography variant="subtitle2">{item.qty} </Typography>
-                            <Button variant="text" onClick={() => increaseQty(index)}> +</Button>
-                          </Box>
+                    {orderData.length <= 0 ?
+                      <TableRow>
+                        <TableCell align="center" colSpan={5}>
+                          <Typography>No Product in Cart</Typography>
                         </TableCell>
-                        <TableCell align="right">₹ {item.price * item.qty}</TableCell>
-                        <TableCell align="right"><Button color="error" onClick={() => removeItem(index)}>
-                          <DeleteIcon />
-                        </Button></TableCell>
                       </TableRow>
-                    ))}
+                      :
+                      orderData?.map((item, index) => (
+                        <TableRow key={index} hover>
+                          <TableCell><Typography fontWeight={500}>{item.name}</Typography></TableCell>
+                          <TableCell align="right">₹{item.price}</TableCell>
+                          <TableCell align="right">
+                            <Box display="flex " justifyContent="center" alignItems="center" gap={1}>
+                              <Button variant="text" onClick={() => decreaseQty(index)}> -</Button>
+                              <Typography variant="subtitle2">{item.qty} </Typography>
+                              <Button variant="text" onClick={() => increaseQty(index)}> +</Button>
+                            </Box>
+                          </TableCell>
+                          <TableCell align="right">₹ {item.price * item.qty}</TableCell>
+                          <TableCell align="right"><Button color="error" onClick={() => removeItem(index)}>
+                            <DeleteIcon />
+                          </Button></TableCell>
+                          {/* <TableCell colSpan={5}>
+                         <Typography>No Product in Cart</Typography>
+                       </TableCell> */}
+                        </TableRow>
+                      ))
+                    }
                   </TableBody>
 
                 </Table>
               </TableContainer>
-    
+
             </Card>
-             <Button variant="outlined" sx={{mt:2}} onClick={backNavigation}><KeyboardBackspaceIcon/> Back To Poduct</Button>
+            <Button variant="outlined" sx={{ mt: 2 }} onClick={backNavigation}><KeyboardBackspaceIcon /> Back To Poduct</Button>
           </Grid>
-         
+
 
           <Grid size={{ xs: 12, md: 4 }}>
             <Card sx={{ p: 3, borderRadius: 3 }}>
@@ -239,7 +251,7 @@ export default function CheckoutPage() {
                 <Typography variant="h6" fontWeight="bold" color="primary">₹ {total}</Typography>
               </Box>
 
-              <Button fullWidth variant="contained" size="large" sx={{ borderRadius: 2 }} onClick={handelCheckout}> Order</Button>
+              <Button fullWidth variant="contained" size="large" sx={{ borderRadius: 2 }} onClick={handelCheckout} disabled={orderData.length <= 0}> Order</Button>
 
             </Card>
           </Grid>
