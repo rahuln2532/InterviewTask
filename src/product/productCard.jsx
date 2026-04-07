@@ -291,20 +291,20 @@ export default function CardComponent() {
                             </Button>
                           ) : (
                             <Grid container spacing={1}>
-                              <Grid item xs={6}>
+                              <Grid size={{xs:6}}>
                                 {(cartSize?.some((item) => item.id === product.id)) ?
-                                  <Button fullWidth variant="contained" color="warning" onClick={openCart}>
+                                  <Button fullWidth variant="contained"size="small" color="warning" onClick={openCart}>
                                     Go To Cart
                                   </Button>
                                   :
-                                  <Button fullWidth variant="contained" onClick={() => addToCart(product.id)}>
+                                  <Button fullWidth size="small" variant="contained" onClick={() => addToCart(product.id)}>
                                     Add To Cart
                                   </Button>
                                 }
                               </Grid>
 
-                              <Grid item xs={6}>
-                                <Button fullWidth variant="contained" onClick={() => next(product.id)}>
+                              <Grid size={{xs:6}}>
+                                <Button fullWidth variant="contained"  size="small" onClick={() => next(product.id)}>
                                   Buy
                                 </Button>
                               </Grid>
